@@ -1,4 +1,7 @@
 import requests
+# from bs4 import BeautifulSoup
+
+
 
 payload = {
 	"username": "Daik1226",
@@ -10,12 +13,12 @@ payload = {
 login_url = 'https://connect.just-eat.ca/api/account/login'
 
 s = requests.session()
+s.headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36'
 #r = requests.get(login_url)
 
-result = s.post( login_url, data = payload )
+result = s.post(login_url, data=payload)
 print(result.status_code)
+MYCOOKIES = result.cookies
 
-result = s.get('https://partner.just-eat.ca/')
+result = s.get('https://partner.just-eat.ca/', cookies=MYCOOKIES)
 print(result.status_code)
-
-print(result.text)
