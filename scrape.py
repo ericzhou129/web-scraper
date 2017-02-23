@@ -1,8 +1,6 @@
 import requests
 # from bs4 import BeautifulSoup
 
-
-
 payload = {
 	"username": "Daik1226",
 	"password": "Daik1226",
