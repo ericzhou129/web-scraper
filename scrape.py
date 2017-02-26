@@ -10,12 +10,10 @@ ex: https://partner.just-eat.ca/Orders/OrderDetail/12936365
 (5)Export data as a csv
 """
 
-
-
 import requests
 from bs4 import BeautifulSoup
 
-#STEP 1: Login to the site
+# STEP 1: Login to the site
 payload = {
 	"username": "Daik1226",
 	"password": "Daik1226",
@@ -31,22 +29,40 @@ r = s.post(login_url, data=payload)
 print(r.status_code)
 MYCOOKIES = r.cookies
 
-# result = s.get('https://partner.just-eat.ca/', cookies=MYCOOKIES)
-# print(result.status_code)
-# print(result.text)
-
-#STEP 2: Go to the correct date selection
-#Grab the page for a date or a range of dates
+# STEP 2: Go to the correct date selection
+# Grab the page for a date or a range of dates
 date = "17-02-2017"
-request_date_url = "https://partner.just-eat.ca/Orders/OrdersBetweenDates/" + date + "/1m?pageIndex=3"
+duration = "1m"
+index_page = "3"
+request_date_url = "https://partner.just-eat.ca/Orders/OrdersBetweenDates/" + date + "/" + duration + "?pageIndex=" + index_page
 result = s.get(request_date_url, cookies=MYCOOKIES)
 print(result.status_code)
 
-#STEP 3: using beautifulsoup, compile a list of order links.
-
-# #use bs4 to find all order links
+# STEP 3: using beautifulsoup, compile a list of order links.
+# use bs4 to find all order links
 result_soup = BeautifulSoup(result.content, 'html.parser')
-#print(result_soup.prettify())
-odd = result_soup.find_all('a', href = True, class_= 'odd orderDetailsRow')
-#^^THIS SYNTAX NEEDS TO BE FIXED
-print(odd)
+
+# Figure out how many index pages there are for a given date range.
+# hint: use regular expression to find last index?
+# TODO: Check that index 8 is inddeed the last link.
+for link in result_soup.find_all(id="PageIndexList"):
+    print(link.find_all(href - True)[8])
+#loop through all index pages
+
+# on each index page, order links are separated into 'even' and 'odd' links
+# loops to find all even and odd order links
+# TODO: Turn These into functions
+count_even = 0
+count_odd = 0
+for link in result_soup.find_all(class_= 'odd orderDetailsRow'):
+    print(link.a['href'])
+    if link.a['href'] != None:
+        count_odd+=1
+
+for link in result_soup.find_all(class_= 'even orderDetailsRow'):
+    print(link.a['href'])
+    if link.a['href'] != None:
+        count_even+=1
+
+count = count_odd + count_even
+print(count + 'links found in total')
