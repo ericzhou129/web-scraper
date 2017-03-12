@@ -17,24 +17,6 @@ from bs4 import BeautifulSoup
 
 # ------------------------------FUNCTIONS----------------------------------#
 
-# # This function logs into the just-eat canada partner site and returns cookie
-# # TODO: Prompt User to enter username and password
-# # TODO: Terminate if login result is not 200
-# def get_site_login_cookie():
-#     payload = {
-#         "username": "Daik1226",
-#         "password": "Daik1226",
-#         "isPersistent": 0
-#     }
-#     login_url = 'https://connect.just-eat.ca/api/account/login'
-#     global s
-#     s = requests.session()
-#     s.headers[
-#         'User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36'
-#     r = s.post(login_url, data=payload)
-#     print('the status of the login is:' + str(r.status_code))
-#     return r.cookies
-
 
 # This function initiates the link for given variables and returns request object
 # TODO: Terminate if result is not 200
@@ -46,38 +28,20 @@ def initiate_link(date, duration, index_page, MYCOOKIES, s):
     return result
 
 
-# This function returns all order links under the class 'odd orderDetailsRow'
-# returning a list of links
-# for a given page
-def find_odd_order_links(soup):
+# This function returns all order links under the classes 'odd orderDetailsRow' and 'even orderDetailsRow'
+# returning a list of order details links for a given html page
+def find_order_links(soup):
     found_links = []
     for link in soup.find_all(class_='odd orderDetailsRow'):
         found_links.append(link.a['href'])
-    return found_links
-
-
-# This function returns all order links under the class 'even orderDetailsRow'
-# returning a list of links
-# for a given page
-def find_even_order_links(soup):
-    found_links = []
     for link in soup.find_all(class_='even orderDetailsRow'):
         found_links.append(link.a['href'])
     return found_links
 
 
-# # This function returns the last link of the given index page
-# # Note: need to make sure index 8 is the last page
-# def find_last_link(soup):
-#     for link in soup.find_all(id="PageIndexList"):
-#         end_link = link.find_all(href=True)[6]
-#         print(end_link)
-#     return end_link
-
-
 # This function returns all links found in a list
 # Loop the extraction for all the index pages
-def find_all_links (date, duration, MYCOOKIES, s):
+def find_all_links(date, duration, MYCOOKIES, s):
     output_links = []
     for index_page in range(100):
 
@@ -92,18 +56,58 @@ def find_all_links (date, duration, MYCOOKIES, s):
 
         result_soup = BeautifulSoup(result.content, 'html.parser')
 
-        if len(find_odd_order_links(result_soup)) == 0:
+        if len(find_order_links(result_soup)) == 0:
             print(' ')
             print('WE ARE GOING TO BREAK! --> at index ' + str(index_page))
             print(' ')
             break
 
-        for links in find_odd_order_links(result_soup):
-            output_links.append(links)
-        for links in find_even_order_links(result_soup):
+        for links in find_order_links(result_soup):
             output_links.append(links)
 
     return output_links
+
+
+# returns all (1) order item names (2) number of order items
+def find_OrderNameList(result_soup):
+    OrderNameList = (result_soup.find_all("td", {'width': '200', 'valign': 'top'}))
+    item_list = []
+    n = 0
+    for item in OrderNameList:
+        # Note: what if list is empty?
+        # if item == 'None':
+        #     break
+        item_list.append(item.find('b').string)
+        n += 1
+    return item_list, n
+
+
+# find the number of all order items (ie.pieces) -- return list
+def find_OrderPiecesList(result_soup):
+    OrderPiecesList = (result_soup.find_all("strong"))
+    item_list = []
+    for item in OrderPiecesList:
+        item_list.append(item.string)
+    return(item_list)
+
+
+# find the item category of each order item -- return list
+def find_OrderDescriptionList(result_soup):
+    OrderDescriptionList = (result_soup.find_all("td", {'width': '185'}))
+    item_list = []
+    for item in OrderDescriptionList:
+        item_list.append(item.find('b').string)
+    return(item_list)
+
+
+# find the unit price of each order item -- return list
+def find_OrderUnitPriceList(result_soup):
+    OrderUnitPriceList = (result_soup.find_all("td", {'width': '85'}))
+    item_list = []
+    for item in OrderUnitPriceList:
+        item_list.append(item.find('font').string)
+    return(item_list)
+
 
 # --------------------------------------------------------------------------#
 
@@ -129,7 +133,7 @@ MYCOOKIES = r.cookies
 # TODO: Prompt user to enter date and duration
 # Initiate the link into the 'result' variable
 date = "17-02-2017"
-duration = "1m"
+duration = "1d"
 index_page = "0"
 result = initiate_link(date, duration, index_page, MYCOOKIES, s)
 
@@ -139,6 +143,7 @@ result_soup = BeautifulSoup(result.content, 'html.parser')
 # Find all links using the find all links function.
 output_links = find_all_links(date, duration, MYCOOKIES, s)
 
+# print all order details links found
 print(' ')
 print('output links are:')
 print(' ')
@@ -146,12 +151,48 @@ print(output_links)
 print(' ')
 print(str(len(output_links)) + 'have been found.')
 
-output_links = find_odd_order_links(result_soup)
-output_links = find_odd_order_links(result_soup)
+output_links = find_order_links(result_soup)
 
 
+print('')
+print('')
+print('')
+print('')
+print('')
+
+# iterate over each order details link within the list of links found
 for link in output_links:
+
+    # initiate order details link
     order_url = "https://partner.just-eat.ca" + link
     result = s.get(order_url, cookies=MYCOOKIES)
     print('status of page: ' + str(link) + "-->" + str(result.status_code))
     result_soup = BeautifulSoup(result.content, 'html.parser')
+
+    # find and print item names and number of items
+    print('item names are:')
+    namelist, numitems = find_OrderNameList(result_soup)
+    print(namelist)
+    print('')
+
+    print('item amounts are:')
+    amountlist = find_OrderPiecesList(result_soup)
+    print(amountlist)
+    print('')
+
+    print('item catagories are:')
+    catagorieslist = find_OrderDescriptionList(result_soup)
+    print(catagorieslist)
+    print('')
+
+    print('item unit prices are:')
+    unitpriceslist = find_OrderUnitPriceList(result_soup)
+    print(unitpriceslist)
+    print('')
+
+    print('-------------------------------------')
+
+# TODO: need to add columns for order number, address and date.
+# iterate these items 'numitem' times for each list
+# might need to create a function that creates lists that repeats a string for
+# numitem times
