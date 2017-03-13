@@ -192,7 +192,7 @@ for link in output_links:
 
     print('-------------------------------------')
 
-# TODO: need to add columns for order number, address and date.
+# TODO: need to add columns for order number, street address, postal code, tip and date.
 # iterate these items 'numitem' times for each list
 # might need to create a function that creates lists that repeats a string for
 # numitem times
