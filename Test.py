@@ -81,21 +81,47 @@ def find_OrderUnitPriceList(result_soup):
     return(item_list)
 
 
-# # find the total price of the number of order items -- return list
-# OrderTotalPriceList = (result_soup.find_all("td", {'nowrap': 'nowrap', 'align': 'right'}))
-# item_list = []
-# for item in OrderTotalPriceList:
-#     item_list.append(item.find('font'))
-# print(item_list)
+# def find_OrderNumber(result_soup):
+#     #OrderNumber = result_soup.find_all
 
-namelist, numitems = find_OrderNameList(result_soup)
-print('name list type: ' + str(type(namelist)))
-print(namelist)
-print('')
-print('numitems type: ' + str(type(numitems)))
-print(numitems)
-print('')
+# find the street address of the customer 
+# (note that this is initiated the same way as postal code - room for improvement)
+def find_StreetAddress(result_soup):
+    StreetAddress = result_soup.find_all("td", {'colspan': '3', 'width': '400', 'valign': 'bottom', 'align': 'left'})
+    StreetAddress = StreetAddress[1].find('font').string
+    print (StreetAddress)
+    return
 
-find_OrderPiecesList(result_soup)
-find_OrderDescriptionList(result_soup)
-find_OrderUnitPriceList(result_soup)
+# find the postal code of the customer
+def find_PostalCode(result_soup):
+    PostalCode = result_soup.find_all("td", {'colspan': '3', 'width': '400', 'valign': 'bottom', 'align': 'left'})
+    PostalCode = PostalCode[2].string
+    print (PostalCode)
+    return
+
+#find the tip of the order by counting back 3 from the list of all prices on the page  (ie. td, align right)
+def find_Tip(result_soup):
+    Tip = result_soup.find_all("td", {'align': 'right'})
+    n = int(len(Tip)) - 3
+    Tip = Tip[n].find('font').string
+    print(Tip)
+    return
+
+
+# find the date of the order
+def find_Date(result_soup):
+    Date = result_soup.find_all("td", {'colspan': '5', 'valign': 'bottom'})
+    Date = Date[0].find('font', {'size': '4'}).string
+    print(Date)
+    return
+
+# find the Time --> use regex to search?
+def find_DateTime(result_soup):
+
+
+find_StreetAddress(result_soup)
+find_PostalCode(result_soup)
+find_Date(result_soup)
+find_Tip(result_soup)
+
+# Implement: orde rnumber, street address, postal code, tip, date
