@@ -18,7 +18,7 @@ print('the status of the login is:' + str(r.status_code))
 MYCOOKIES = r.cookies
 
 # initiate link
-order_url = 'https://partner.just-eat.ca/Orders/OrderDetail/12907379'
+order_url = 'https://partner.just-eat.ca/Orders/OrderDetail/13279066'
 result = s.get(order_url, cookies=MYCOOKIES)
 print('status of page: ' + str(result.status_code))
 result_soup = BeautifulSoup(result.content, 'html.parser')
@@ -81,47 +81,68 @@ def find_OrderUnitPriceList(result_soup):
     return(item_list)
 
 
-# def find_OrderNumber(result_soup):
-#     #OrderNumber = result_soup.find_all
+# ----------------------------------------------------------------------------
 
-# find the street address of the customer 
+
+# find order number and return order number
+def find_OrderNumber(result_soup):
+    OrderNumber = result_soup.find_all('td', {'colspan': '2', 'style': 'line-height: 16px;'})
+    OrderNumber = OrderNumber[0].find('b').string
+    return OrderNumber
+
+
+# find the street address of the customer
 # (note that this is initiated the same way as postal code - room for improvement)
 def find_StreetAddress(result_soup):
     StreetAddress = result_soup.find_all("td", {'colspan': '3', 'width': '400', 'valign': 'bottom', 'align': 'left'})
     StreetAddress = StreetAddress[1].find('font').string
-    print (StreetAddress)
-    return
+    return StreetAddress
+
 
 # find the postal code of the customer
 def find_PostalCode(result_soup):
     PostalCode = result_soup.find_all("td", {'colspan': '3', 'width': '400', 'valign': 'bottom', 'align': 'left'})
     PostalCode = PostalCode[2].string
-    print (PostalCode)
-    return
+    return PostalCode
 
-#find the tip of the order by counting back 3 from the list of all prices on the page  (ie. td, align right)
+
+# find the tip of the order by counting back 3 from the list of all prices on the page  (ie. td, align right)
 def find_Tip(result_soup):
     Tip = result_soup.find_all("td", {'align': 'right'})
     n = int(len(Tip)) - 3
     Tip = Tip[n].find('font').string
-    print(Tip)
-    return
+    return Tip
 
 
 # find the date of the order
 def find_Date(result_soup):
     Date = result_soup.find_all("td", {'colspan': '5', 'valign': 'bottom'})
     Date = Date[0].find('font', {'size': '4'}).string
-    print(Date)
-    return
+    return Date
+
 
 # find the Time --> use regex to search?
 def find_DateTime(result_soup):
+    DateTime = result_soup.find_all("td", {'valign': 'top', 'align': 'center'})
+    n = int(len(DateTime)) - 2
+    DateTime = DateTime[n].find("font", {'size': '2'}).string
+    return DateTime
 
 
+# find previous orders from customer by using the last of the list
+def find_PrevOrder(result_soup):
+    PrevOrder = result_soup.find_all("td", {'align': 'center'})
+    n = int(len(PrevOrder)) - 2
+    PrevOrder = PrevOrder[n].find('font').string
+    return PrevOrder
+
+
+find_OrderNumber(result_soup)
 find_StreetAddress(result_soup)
 find_PostalCode(result_soup)
 find_Date(result_soup)
 find_Tip(result_soup)
+find_DateTime(result_soup)
+find_PrevOrder(result_soup)
 
-# Implement: orde rnumber, street address, postal code, tip, date
+# Implement: orde rnumber, street address, postal code, tip, date, previous orders
