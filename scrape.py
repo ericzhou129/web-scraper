@@ -227,10 +227,11 @@ categorieslist = []
 unitpriceslist = []
 ordernumberlist = []
 streetaddreslist = []
+postalcodelist = []
 tiplist = []
 datelist = []
 datetimelist = []
-prevorder = []
+prevorderlist = []
 
 # iterate over each order details link within the list of links found
 for link in output_links:
@@ -245,35 +246,35 @@ for link in output_links:
     # find and print (1) item names and (2)number of items
     numitems = find_OrderNameList(result_soup)[1]
 
-    namelist.extend((find_OrderNameList(result_soup)[0])
+    namelist += find_OrderNameList(result_soup)[0]
 
-    amountlist.extend(find_OrderPiecesList(result_soup))
+    amountlist += find_OrderPiecesList(result_soup)
 
-    categorieslist.extend(find_OrderDescriptionList(result_soup))
+    categorieslist += find_OrderDescriptionList(result_soup)
 
-    unitpriceslist.extend(find_OrderUnitPriceList(result_soup))
+    unitpriceslist += find_OrderUnitPriceList(result_soup)
 
     # get value and create a list with n of the value
     ordernumber = find_OrderNumber(result_soup)
-    ordernumberlist.extend([ordernumber] * numitems)
+    ordernumberlist += [ordernumber] * numitems
 
     streetaddress = find_StreetAddress(result_soup)
-    streetaddreslist.extend([streetaddress] * numitems)
+    streetaddreslist += [streetaddress] * numitems
 
     postalcode = find_PostalCode(result_soup)
-    postalcodelist.extend([postalcode] * numitems)
+    postalcodelist += [postalcode] * numitems
 
     tip = find_Tip(result_soup)
-    tiplist.extend([tip] * numitems)
+    tiplist += [tip] * numitems
 
     date = find_Date(result_soup)
-    datelist.extend([date] * numitems)
+    datelist += [date] * numitems
 
     datetime = find_DateTime(result_soup)
-    datetimelist.extend([datetime] * numitems)
+    datetimelist += [datetime] * numitems
 
     prevorder = find_PrevOrder(result_soup)
-    prevorderlist.extend([prevorder] * numitems)
+    prevorderlist += [prevorder] * numitems
 
 print('------------------lists have been derived!-------------------')
 
@@ -292,6 +293,7 @@ info_df = OrderedDict([
     ('previous orders', prevorderlist)])
 
 df = pd.DataFrame.from_dict(info_df)
+df.to_csv('test.csv')
 
 print(df)
 
