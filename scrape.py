@@ -13,6 +13,8 @@ ex: https://partner.just-eat.ca/Orders/OrderDetail/12936365
 
 import requests
 from bs4 import BeautifulSoup
+import pandas as pd
+from collections import OrderedDict
 
 
 # ------------------------------FUNCTIONS----------------------------------#
@@ -25,6 +27,10 @@ def initiate_link(date, duration, index_page, MYCOOKIES, s):
         date + "/" + duration + "?pageIndex=" + index_page
     result = s.get(request_date_url, cookies=MYCOOKIES)
     print("the status of initiate_link is:" + str(result.status_code))
+
+    # if result.status_code != 200:
+    #     break
+
     return result
 
 
@@ -215,6 +221,17 @@ print('')
 print('')
 print('')
 
+namelist = []
+amountlist = []
+categorieslist = []
+unitpriceslist = []
+ordernumberlist = []
+streetaddreslist = []
+tiplist = []
+datelist = []
+datetimelist = []
+prevorder = []
+
 # iterate over each order details link within the list of links found
 for link in output_links:
 
@@ -224,28 +241,60 @@ for link in output_links:
     print('status of page: ' + str(link) + "-->" + str(result.status_code))
     result_soup = BeautifulSoup(result.content, 'html.parser')
 
-    # find and print item names and number of items
-    print('item names are:')
-    namelist, numitems = find_OrderNameList(result_soup)
-    print(namelist)
-    print('')
+    # get all the list
+    # find and print (1) item names and (2)number of items
+    numitems = find_OrderNameList(result_soup)[1]
 
-    print('item amounts are:')
-    amountlist = find_OrderPiecesList(result_soup)
-    print(amountlist)
-    print('')
+    namelist.extend((find_OrderNameList(result_soup)[0])
 
-    print('item catagories are:')
-    catagorieslist = find_OrderDescriptionList(result_soup)
-    print(catagorieslist)
-    print('')
+    amountlist.extend(find_OrderPiecesList(result_soup))
 
-    print('item unit prices are:')
-    unitpriceslist = find_OrderUnitPriceList(result_soup)
-    print(unitpriceslist)
-    print('')
+    categorieslist.extend(find_OrderDescriptionList(result_soup))
 
-    print('-------------------------------------')
+    unitpriceslist.extend(find_OrderUnitPriceList(result_soup))
+
+    # get value and create a list with n of the value
+    ordernumber = find_OrderNumber(result_soup)
+    ordernumberlist.extend([ordernumber] * numitems)
+
+    streetaddress = find_StreetAddress(result_soup)
+    streetaddreslist.extend([streetaddress] * numitems)
+
+    postalcode = find_PostalCode(result_soup)
+    postalcodelist.extend([postalcode] * numitems)
+
+    tip = find_Tip(result_soup)
+    tiplist.extend([tip] * numitems)
+
+    date = find_Date(result_soup)
+    datelist.extend([date] * numitems)
+
+    datetime = find_DateTime(result_soup)
+    datetimelist.extend([datetime] * numitems)
+
+    prevorder = find_PrevOrder(result_soup)
+    prevorderlist.extend([prevorder] * numitems)
+
+print('------------------lists have been derived!-------------------')
+
+# create an 'ordered dictionary' 
+info_df = OrderedDict([
+    ('item name', namelist),
+    ('item amount', amountlist),
+    ('item category', categorieslist),
+    ('item unit price', unitpriceslist),
+    ('order number', ordernumberlist),
+    ('customer address', streetaddreslist),
+    ('postal code', postalcodelist),
+    ('tip', tiplist),
+    ('date', datelist),
+    ('time', datetimelist),
+    ('previous orders', prevorderlist)])
+
+df = pd.DataFrame.from_dict(info_df)
+
+print(df)
+
 
 # TODO: need to add columns for order number, street address, postal code, tip and date.
 # iterate these items 'numitem' times for each list
